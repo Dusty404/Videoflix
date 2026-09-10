@@ -1,14 +1,14 @@
 from rest_framework import status
-from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
 from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
-from datetime import timedelta
-from django.core.signing import TimestampSigner
-from .functions import send_confirmation_email
+from .functions import send_confirmation_email, check_activation_token
+from django.utils.http import urlsafe_base64_decode
+from django.core import signing
+
+User = get_user_model()
 
 class RegisterView(APIView):
     serializer_class = RegistrationSerializer
@@ -83,3 +83,34 @@ class CookieRefreshTokenView(TokenRefreshView):
                         secure=True,
                         samesite="Lax"
                     )
+
+class AccountActivationView(APIView):
+    http_method_names = ["get"]
+
+    def get(self, request, uidb64, token):
+        try:
+            data = check_activation_token(token)
+        except signing.SignatureExpired:
+            return Response({"message": "This activation link has expired."}, status=status.HTTP_400_BAD_REQUEST)
+        except signing.BadSignature:
+         return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=user_id)
+        except (ValueError, TypeError, OverflowError, User.DoesNotExist):
+            return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if (
+            data.get("user_id") != str(user.pk)
+            or data.get("email") != user.email
+        ):
+            return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.is_active:
+            return Response({"message": "Your account is already active"})
+
+        user.is_active = True
+        user.save(update_fields=["is_active"])
+
+        return Response({"message": "Account successfully activated."})
