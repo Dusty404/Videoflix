@@ -7,6 +7,8 @@ from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer
 from .functions import send_confirmation_email, check_activation_token
 from django.utils.http import urlsafe_base64_decode
 from django.core import signing
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
 
 User = get_user_model()
 
@@ -28,14 +30,14 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(rais_exception=True)
+        serializer.is_valid(raise_exception=True)
         response = Response({"message": "Login erfolgreich"})
       
         refresh = serializer.validated_data["refresh"]
         access = serializer.validated_data["access"]
 
         response.set_cookie(
-            key="access",
+            key="access_token",
             value=access,
             httponly=True,
             secure=True,
@@ -66,11 +68,11 @@ class CookieRefreshTokenView(TokenRefreshView):
             serializer = self.get_serializer(data={"refresh": refresh_token})
 
             try:
-                serializer.is_valid(raise_exeption=True)
+                serializer.is_valid(raise_exception=True)
             except:
                 return Response(
                       {"detail": "Refresh token invalid!"},
-                      status=status.HTTP_400_BAD_REQUEST
+                      status=status.HTTP_401_UNAUTHORIZED
                 )
 
             access_token = serializer.validated_data.get("access")
@@ -83,6 +85,26 @@ class CookieRefreshTokenView(TokenRefreshView):
                         secure=True,
                         samesite="Lax"
                     )
+
+            return response
+
+class LogoutView(APIView):
+    http_method_names = ["post"]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if refresh_token:
+            try:
+                RefreshToken(refresh_token).blacklist()
+            except TokenError:
+                pass
+
+        response = Response({"detail": "Logout successful."})
+        response.delete_cookie("access_token", path="/", samesite="Lax")
+        response.delete_cookie("refresh_token", path="/", samesite="Lax")
+
+        return response
 
 class AccountActivationView(APIView):
     http_method_names = ["get"]
@@ -101,10 +123,7 @@ class AccountActivationView(APIView):
         except (ValueError, TypeError, OverflowError, User.DoesNotExist):
             return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if (
-            data.get("user_id") != str(user.pk)
-            or data.get("email") != user.email
-        ):
+        if (data.get("user_id") != str(user.pk) or data.get("email") != user.email):
             return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
 
         if user.is_active:
