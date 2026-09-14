@@ -3,8 +3,8 @@ from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
-from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer
-from .functions import send_confirmation_email, check_activation_token
+from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer, PasswordResetSerializer
+from .functions import send_confirmation_email, check_activation_token, send_password_reset_email
 from django.utils.http import urlsafe_base64_decode
 from django.core import signing
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -133,3 +133,19 @@ class AccountActivationView(APIView):
         user.save(update_fields=["is_active"])
 
         return Response({"message": "Account successfully activated."})
+
+class PasswordResetView(APIView):
+    http_method_names = ["post"]
+
+    def post(self, request):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        user = User.objects.filter(email__iexact=email).first()
+
+        if user is not None:
+            send_password_reset_email(user)
+        return Response({"detail": "An email has been sent to reset your password."})
+
+    

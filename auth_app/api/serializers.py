@@ -67,3 +67,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         data = super().validate({"username": user.username, "password": password})
         return data
+
+class PasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
