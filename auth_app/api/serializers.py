@@ -68,5 +68,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data = super().validate({"username": user.username, "password": password})
         return data
 
-class PasswordResetSerializer(serializers.Serializer):
+class CheckAccountForPasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class PasswordResetSerializer(serializers.Serializer):
+    password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate_confirm_password(self, value):
+            password = self.initial_data.get('password')
+            if password and value and password != value:
+                raise serializers.ValidationError('Passwords do not match')
+            return value

@@ -1,9 +1,10 @@
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
-from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer, PasswordResetSerializer
+from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer, CheckAccountForPasswordResetSerializer, PasswordResetSerializer
 from .functions import send_confirmation_email, check_activation_token, send_password_reset_email
 from django.utils.http import urlsafe_base64_decode
 from django.core import signing
@@ -122,12 +123,15 @@ class AccountActivationView(APIView):
             user = User.objects.get(pk=user_id)
         except (ValueError, TypeError, OverflowError, User.DoesNotExist):
             return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
-
-        if (data.get("user_id") != str(user.pk) or data.get("email") != user.email):
-            return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if data != str(user.pk):
+            return Response(
+            {"message": "This activation link is invalid."},
+            status=status.HTTP_400_BAD_REQUEST,
+            )
 
         if user.is_active:
-            return Response({"message": "Your account is already active"})
+            return Response({"message": "Your account is already active"}, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_active = True
         user.save(update_fields=["is_active"])
@@ -138,7 +142,7 @@ class PasswordResetView(APIView):
     http_method_names = ["post"]
 
     def post(self, request):
-        serializer = PasswordResetSerializer(data=request.data)
+        serializer = CheckAccountForPasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data["email"]
@@ -148,4 +152,30 @@ class PasswordResetView(APIView):
             send_password_reset_email(user)
         return Response({"detail": "An email has been sent to reset your password."})
 
+class SafeResetPasswordView(APIView):
+    http_method_names = ["post"]
+
+    def post(self, request, uidb64, token):
+        password = request.data.get("new_password")
+        confirm_password= request.data.get("confirm_password")
+
+        try:
+            user_id = urlsafe_base64_decode(uidb64).decode()
+            user = User.objects.get(pk=user_id)
+        except (ValueError, TypeError, OverflowError, User.DoesNotExist):
+            return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+            {"message": "Reset-Link is invalid or expired."},
+            status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = PasswordResetSerializer(data={"password": password, "confirm_password": confirm_password})
+
+        serializer.is_valid(raise_exception=True)
+        user.set_password(serializer.validated_data["password"])
+        user.save(update_fields=["password"])
+            
+        return Response({"detail": "Your Password has been successfully reset."})
     
