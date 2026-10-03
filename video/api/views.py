@@ -1,10 +1,9 @@
-from rest_framework import generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 from ..models import Video
-from.serializers import VideoListSerializer
+from .serializers import VideoSerializer
 
-class VideoListView(generics.ListAPIView):
-    model = Video
-    serializer_class = VideoListSerializer
-    queryset = Video.objects.all()
+
+class VideoListView(ListAPIView):
+    queryset = Video.objects.all().order_by("id")
+    serializer_class = VideoSerializer
+    pagination_class = None
