@@ -4,7 +4,7 @@ from pathlib import Path
 
 def convert_hls(source, resolution):
     source = Path(source)
-    output_dir = source.parent / resolution
+    output_dir = source.parent / f"{resolution}p"
     output_dir.mkdir(parents=True, exist_ok=True)
     playlist = output_dir / "index.m3u8"
     subprocess.run([
@@ -25,7 +25,7 @@ def convert_hls(source, resolution):
             "-hls_list_size", "0",
             "-hls_playlist_type", "vod",
             "-hls_segment_filename",
-            str(output_dir / "segment_%03d.ts"),
+            str(output_dir / "%03d.ts"),
             "-f", "hls",
             str(playlist)
         ],check=True)
@@ -38,3 +38,6 @@ def convert_480p(source):
 
 def convert_720p(source):
     return convert_hls(source, "720")
+
+def convert_1080p(source):
+    return convert_hls(source, "1080")

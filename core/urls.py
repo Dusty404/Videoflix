@@ -26,3 +26,6 @@ urlpatterns = [
     path('api/', include('auth_app.api.urls')),
     path('api/', include('video.api.urls'))
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
