@@ -26,21 +26,15 @@ class SingleVideoView(APIView):
             raise Http404("Auflösung nicht verfügbar.")
 
         source = Path(video.video_file.path)
-
-        playlist_path = source.parent / resolution / "index.m3u8"
-
-        print(playlist_path)
+        playlist_path = source.parent/resolution/"index.m3u8"
 
         try:
             file = playlist_path.open("rb")
         except FileNotFoundError:
             raise Http404("Playlist nicht verfügbar.")
 
-        return FileResponse(
-            file,
-            content_type="application/vnd.apple.mpegurl",
-        )
-
+        return FileResponse( file, content_type="application/vnd.apple.mpegurl")
+    
 class SingleVideoSegmentView(APIView):
     permission_classes = [HasJWTPermission]
     
