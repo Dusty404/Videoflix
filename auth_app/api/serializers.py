@@ -62,9 +62,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if not user.check_password(password):
             raise serializers.ValidationError("Ungültige Email oder Passwort")
 
-        if not user.is_active:
-            raise serializers.ValidationError("Bitte bestätigen sie Ihre Registrirung über den bestätigungs Link in Ihrer Email")
-
         data = super().validate({"username": user.username, "password": password})
         return data
 

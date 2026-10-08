@@ -30,27 +30,42 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        user = None
+        if isinstance(email, str) and email.strip():
+            user = User.objects.filter(
+                email__iexact=email.strip()
+            ).first()
+
+        if (
+            user is not None
+            and not user.is_active
+            and isinstance(password, str)
+            and user.check_password(password)
+        ):
+            return Response({"detail": ("Bitte bestätigen Sie Ihre Registrierung über den Bestätigungslink in Ihrer E-Mail.")}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
         response = Response({"message": "Login erfolgreich"})
-      
-        refresh = serializer.validated_data["refresh"]
-        access = serializer.validated_data["access"]
 
         response.set_cookie(
             key="access_token",
-            value=access,
+            value=serializer.validated_data["access"],
             httponly=True,
             secure=True,
-            samesite="Lax"
+            samesite="Lax",
         )
 
         response.set_cookie(
             key="refresh_token",
-            value=refresh,
+            value=serializer.validated_data["refresh"],
             httponly=True,
             secure=True,
-            samesite="Lax"
+            samesite="Lax",
         )
 
         return response
