@@ -90,6 +90,11 @@ Create an project `env`
 python -m venv env
 ```
 
+```bash
+# Linux / macOS
+python3 -m venv env
+```
+
 Activate `env`
 
 ```powershell
@@ -97,10 +102,20 @@ Activate `env`
 env/Scripts/activate
 ```
 
+```bash
+# Linux / macOS
+source env/bin/activate
+```
+
 Install `requirements`
 
 ```powershell
 # PowerShell
+pip install -r requirements.txt
+```
+
+```bash
+# Linux / macOS
 pip install -r requirements.txt
 ```
 
