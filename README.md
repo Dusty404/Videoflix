@@ -83,21 +83,24 @@ git clone https://github.com/Dusty404/Videoflix.git
 
 Open a terminal in the downloaded project directory.
 
-Create an project env
+Create an project `env`
 
 ```powershell
+# PowerShell
 python -m venv env
 ```
 
-Activate env
+Activate `env`
 
 ```powershell
+# PowerShell
 env/Scripts/activate
 ```
 
-Install requirements
+Install `requirements`
 
 ```powershell
+# PowerShell
 pip install -r requirements.txt
 ```
 
