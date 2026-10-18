@@ -90,6 +90,11 @@ Create an project `env`
 python -m venv env
 ```
 
+```bash
+# Linux / macOS
+python3 -m venv env
+```
+
 Activate `env`
 
 ```powershell
