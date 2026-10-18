@@ -165,6 +165,7 @@ The startup script waits for PostgreSQL, collects static files, generates and ap
 Migrate Video to add Videos in adminpannel
 
 ```powershell
+# Powershell / Linux /macOS
 docker compose exec web python manage.py makemigrations video
 docker compose exec web python manage.py migrate
 ```
