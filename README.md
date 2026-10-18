@@ -73,7 +73,7 @@ Videoflix/
 - An accessible SMTP service for email delivery
 - A compatible frontend with HLS playback for the complete application
 
-### 1. Download the Repository
+### 1. Download the Repository and create env
 
 Clone the repository or download it as a ZIP file. Replace the placeholder with your repository URL:
 
@@ -82,6 +82,24 @@ git clone https://github.com/Dusty404/Videoflix.git
 ```
 
 Open a terminal in the downloaded project directory.
+
+Create an project env
+
+```powershell
+python -m venv env
+```
+
+Activate env
+
+```powershell
+env/Scripts/activate
+```
+
+Install requirements
+
+```powershell
+pip install -r requirements.txt
+```
 
 ### 2. Configure Environment Variables
 
