@@ -97,13 +97,6 @@ Activate `env`
 env/Scripts/activate
 ```
 
-Install `requirements`
-
-```powershell
-# PowerShell
-pip install -r requirements.txt
-```
-
 ### 2. Configure Environment Variables
 
 Copy `.env.template` to `.env`:
@@ -163,6 +156,13 @@ The startup script waits for PostgreSQL, collects static files, generates and ap
 | `http://localhost:8000/django-rq/` | Queue administration for authorized administrators |
 
 ### 4. Add Your First Video
+
+Migrate Video to add Videos in adminpannel
+
+```powershell
+docker compose exec web python manage.py makemigrations video
+docker compose exec web python manage.py migrate
+```
 
 1. Sign in to Django admin using the configured administrator account.
 2. Create a new entry under **Videos**.
