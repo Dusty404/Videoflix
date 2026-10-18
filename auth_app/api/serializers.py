@@ -19,17 +19,49 @@ class RegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate_confirmed_password(self, value):
+        """
+        Check that the supplied password confirmation matches the password.
+
+        Args:
+            value (str): Submitted password confirmation.
+
+        Returns:
+            str: The validated confirmation.
+
+        Raises:
+            ValidationError: If the supplied password values differ.
+        """
         password = self.initial_data.get('password')
         if password and value and password != value:
             raise serializers.ValidationError('Passwords do not match')
         return value
 
     def validate_email(self, value):
+        """
+        Reject an email address already stored using an exact lookup.
+
+        Args:
+            value (str): Submitted email address.
+
+        Returns:
+            str: The email address if no exact match exists.
+
+        Raises:
+            ValidationError: If the email address already exists.
+        """
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError('Email already exists')
         return value
 
     def save(self):
+        """
+        Create an inactive user from validated data with a hashed password.
+
+        Use the email address as both the username and email.
+
+        Returns:
+            User: The newly saved inactive account.
+        """
         pw = self.validated_data['password']
         email = self.validated_data['email']
 
@@ -45,12 +77,35 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     password = serializers.CharField(write_only=True)
 
     def __init__(self, *args, **kwargs):
+        """
+        Initialize email-based login fields and remove the username field.
+
+        Args:
+            *args: Positional arguments forwarded to the parent serializer.
+            **kwargs: Keyword arguments forwarded to the parent serializer.
+
+        Returns:
+            None: This function does not return a value.
+        """
         super().__init__(*args, **kwargs)
 
         if "username" in self.fields:
             self.fields.pop("username")
 
     def validate(self, attrs):
+        """
+        Resolve an email/password pair and delegate JWT creation to the parent.
+
+        Args:
+            attrs (dict): Input containing email and password.
+
+        Returns:
+            dict: Validated access and refresh token data.
+
+        Raises:
+            ValidationError: If the email is unknown or the password is incorrect.
+            AuthenticationFailed: If parent authentication rejects the account.
+        """
         email = attrs.get("email")
         password = attrs.get("password")
 
@@ -73,6 +128,18 @@ class PasswordResetSerializer(serializers.Serializer):
     confirm_password = serializers.CharField()
 
     def validate_confirm_password(self, value):
+            """
+            Check the confirmation against the submitted replacement password.
+
+            Args:
+                value (str): Submitted password confirmation.
+
+            Returns:
+                str: The validated confirmation.
+
+            Raises:
+                ValidationError: If the supplied password values differ.
+            """
             password = self.initial_data.get('password')
             if password and value and password != value:
                 raise serializers.ValidationError('Passwords do not match')

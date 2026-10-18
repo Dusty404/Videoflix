@@ -19,6 +19,22 @@ class SingleVideoView(APIView):
     permission_classes = [HasJWTPermission]
 
     def get(self, request, movie_id, resolution):
+        """
+        Open and stream the requested video rendition's HLS playlist.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            movie_id (int): Primary key of the requested video.
+            resolution (str): Requested rendition: 480p, 720p, or 1080p.
+
+        Returns:
+            FileResponse: Playlist with application/vnd.apple.mpegurl content type.
+
+        Raises:
+            Http404: If the video, allowed resolution, or playlist is unavailable.
+            ValueError: If the video has no attached source file.
+            OSError: If opening the playlist fails for another filesystem reason.
+        """
         video = get_object_or_404(Video, pk=movie_id)
         source = Path(video.video_file.path)
 
@@ -39,6 +55,23 @@ class SingleVideoSegmentView(APIView):
     permission_classes = [HasJWTPermission]
     
     def get(self, request, movie_id, resolution, segment):
+        """
+        Open and stream a segment from the requested video rendition.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            movie_id (int): Primary key of the requested video.
+            resolution (str): Requested rendition: 480p, 720p, or 1080p.
+            segment (str): Segment filename from the URL, such as 000.ts.
+
+        Returns:
+            FileResponse: Segment with video/mp2t content type.
+
+        Raises:
+            Http404: If the video, allowed resolution, or segment is unavailable.
+            ValueError: If source-path access occurs without an attached file.
+            OSError: If opening the segment fails for another filesystem reason.
+        """
         video = get_object_or_404(Video, pk=movie_id)
         source = Path(video.video_file.path)
 

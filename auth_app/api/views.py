@@ -17,6 +17,20 @@ class RegisterView(APIView):
     serializer_class = RegistrationSerializer
 
     def post(self, request, *args, **kwargs):
+        """
+        Create an inactive account and send its activation email.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            *args: Additional positional arguments supplied by the framework.
+            **kwargs: Additional keyword arguments supplied by the framework.
+
+        Returns:
+            Response: HTTP 201 confirming account creation.
+
+        Raises:
+            ValidationError: If registration data is invalid.
+        """
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -30,6 +44,21 @@ class CookieTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
+        """
+        Authenticate an active user and set secure HTTP-only JWT cookies.
+
+        Args:
+            request (Request): The incoming request containing email and password.
+            *args: Additional positional arguments supplied by the framework.
+            **kwargs: Additional keyword arguments supplied by the framework.
+
+        Returns:
+            Response: Login confirmation with token cookies, or HTTP 403 for an inactive account with valid credentials.
+
+        Raises:
+            ValidationError: If the supplied credentials fail serializer validation.
+            AuthenticationFailed: If authentication is rejected.
+        """
         email = request.data.get("email")
         password = request.data.get("password")
 
@@ -68,6 +97,17 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 class CookieRefreshTokenView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
+        """
+        Validate the refresh cookie and replace the access-token cookie.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            *args: Additional positional arguments supplied by the framework.
+            **kwargs: Additional keyword arguments supplied by the framework.
+
+        Returns:
+            Response: Refresh confirmation, HTTP 400 for a missing cookie, or HTTP 401 when refresh validation fails.
+        """
         refresh_token = request.COOKIES.get('refresh_token')
 
         if refresh_token is None:
@@ -100,6 +140,15 @@ class LogoutView(APIView):
     http_method_names = ["post"]
 
     def post(self, request):
+        """
+        Blacklist the supplied refresh token and remove both JWT cookies.
+
+        Args:
+            request (Request): The incoming HTTP request.
+
+        Returns:
+            Response: HTTP 200 confirming logout. Invalid refresh tokens are ignored.
+        """
         refresh_token = request.COOKIES.get("refresh_token")
 
         if refresh_token:
@@ -118,6 +167,17 @@ class AccountActivationView(APIView):
     http_method_names = ["get"]
 
     def get(self, request, uidb64, token):
+        """
+        Verify a signed activation link and activate the matching account.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            uidb64 (str): URL-safe Base64-encoded user ID.
+            token (str): Signed activation token, valid for 24 hours.
+
+        Returns:
+            Response: HTTP 200 for an activated or already active account, or HTTP 400 for a handled invalid link.
+        """
         try:
             data = check_activation_token(token)
         except signing.SignatureExpired:
@@ -149,6 +209,20 @@ class PasswordResetView(APIView):
     http_method_names = ["post"]
 
     def post(self, request):
+        """
+        Send a reset email when an account matches the supplied email address.
+
+        Return the same confirmation for existing and unknown addresses.
+
+        Args:
+            request (Request): The incoming request containing an email address.
+
+        Returns:
+            Response: HTTP 200 with a generic reset-email confirmation.
+
+        Raises:
+            ValidationError: If the email field is invalid.
+        """
         serializer = CheckAccountForPasswordResetSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -163,6 +237,20 @@ class SafeResetPasswordView(APIView):
     http_method_names = ["post"]
 
     def post(self, request, uidb64, token):
+        """
+        Validate a reset token and save the newly hashed password.
+
+        Args:
+            request (Request): The incoming request containing new_password and confirm_password.
+            uidb64 (str): URL-safe Base64-encoded user ID.
+            token (str): Password reset token from the email link.
+
+        Returns:
+            Response: HTTP 200 after updating the password, or HTTP 400 for a handled invalid or expired link.
+
+        Raises:
+            ValidationError: If password fields are invalid or do not match.
+        """
         password = request.data.get("new_password")
         confirm_password= request.data.get("confirm_password")
 

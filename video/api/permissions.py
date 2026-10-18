@@ -8,6 +8,18 @@ class HasJWTPermission(BasePermission):
     message = "Ein gültiger Login ist erforderlich."
 
     def has_permission(self, request, view):
+        """
+        Validate the access-token cookie and resolve its associated user.
+
+        Check permission without assigning the resolved user to request.user.
+
+        Args:
+            request (Request): The incoming HTTP request.
+            view (APIView): View requesting the permission check; currently unused.
+
+        Returns:
+            bool: True for a valid cookie and resolvable user; False for a missing cookie or handled authentication error.
+        """
         token = request.COOKIES.get("access_token")
 
         if not token:

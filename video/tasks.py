@@ -3,6 +3,22 @@ from pathlib import Path
 
 
 def convert_hls(source, resolution):
+    """
+    Run FFmpeg to generate an HLS playlist and segments beside the source.
+
+    Create a resolution-specific directory and overwrite existing output.
+
+    Args:
+        source (str | Path): Filesystem path to the source video.
+        resolution (str): Target resolution without p, such as 480, 720, or 1080.
+
+    Returns:
+        str: Filesystem path to the generated index.m3u8 playlist.
+
+    Raises:
+        subprocess.CalledProcessError: If FFmpeg exits unsuccessfully.
+        OSError: If filesystem access or process creation fails.
+    """
     source = Path(source)
     output_dir = source.parent / f"{resolution}p"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -33,11 +49,50 @@ def convert_hls(source, resolution):
 
 
 def convert_480p(source):
+    """
+    Generate the 480p HLS rendition through the shared conversion helper.
+
+    Args:
+        source (str | Path): Filesystem path to the source video.
+
+    Returns:
+        str: Path to the generated playlist.
+
+    Raises:
+        subprocess.CalledProcessError: If FFmpeg conversion fails.
+        OSError: If filesystem access or process creation fails.
+    """
     return convert_hls(source, "480")
 
 
 def convert_720p(source):
+    """
+    Generate the 720p HLS rendition through the shared conversion helper.
+
+    Args:
+        source (str | Path): Filesystem path to the source video.
+
+    Returns:
+        str: Path to the generated playlist.
+
+    Raises:
+        subprocess.CalledProcessError: If FFmpeg conversion fails.
+        OSError: If filesystem access or process creation fails.
+    """
     return convert_hls(source, "720")
 
 def convert_1080p(source):
+    """
+    Generate the 1080p HLS rendition through the shared conversion helper.
+
+    Args:
+        source (str | Path): Filesystem path to the source video.
+
+    Returns:
+        str: Path to the generated playlist.
+
+    Raises:
+        subprocess.CalledProcessError: If FFmpeg conversion fails.
+        OSError: If filesystem access or process creation fails.
+    """
     return convert_hls(source, "1080")

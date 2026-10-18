@@ -10,6 +10,15 @@ import django_rq
 
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
+    """
+    Enqueue three HLS conversion jobs for a newly created video with a file.
+
+    Args:
+        sender (type[Video]): Model class emitting the post_save signal.
+        instance (Video): Saved video record.
+        created (bool): Whether the record was newly inserted.
+        **kwargs: Additional Django signal arguments.
+    """
     if created and instance.video_file:
         queue = django_rq.get_queue("default", autocommit=True)
         queue.enqueue(convert_480p, instance.video_file.path)
@@ -18,6 +27,20 @@ def video_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Video)
 def delete_files_on_delete(sender, instance, **kwargs):
+    """
+    Remove a deleted video's source directory and generated HLS files.
+
+    Only remove directories strictly below media/videos. Separate thumbnails
+    are not removed.
+
+    Args:
+        sender (type[Video]): Model class emitting the post_delete signal.
+        instance (Video): Deleted video record.
+        **kwargs: Additional Django signal arguments.
+
+    Raises:
+        OSError: If removing an eligible directory fails.
+    """
     if not instance.video_file:
         return
 

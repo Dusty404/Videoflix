@@ -3,6 +3,18 @@ from django.db import models
 from django.utils.text import slugify
 
 def video_upload_path(instance, filename):
+    """
+    Build a storage-relative upload path from the sanitized filename.
+
+    Use the slugified filename stem as the directory, falling back to video.
+
+    Args:
+        instance (Video): Model instance receiving the upload; currently unused.
+        filename (str): Original uploaded filename.
+
+    Returns:
+        str: Upload path in the form videos/<slug>/<filename>.
+    """
     filename = Path(filename).name
     folder_name = slugify(Path(filename).stem) or "video"
 

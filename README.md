@@ -78,7 +78,7 @@ Videoflix/
 Clone the repository or download it as a ZIP file. Replace the placeholder with your repository URL:
 
 ```bash
-git clone <REPOSITORY-URL>
+git clone https://github.com/Dusty404/Videoflix.git
 ```
 
 Open a terminal in the downloaded project directory.
