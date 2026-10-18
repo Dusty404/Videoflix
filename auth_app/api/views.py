@@ -39,13 +39,8 @@ class CookieTokenObtainPairView(TokenObtainPairView):
                 email__iexact=email.strip()
             ).first()
 
-        if (
-            user is not None
-            and not user.is_active
-            and isinstance(password, str)
-            and user.check_password(password)
-        ):
-            return Response({"detail": ("Bitte bestätigen Sie Ihre Registrierung über den Bestätigungslink in Ihrer E-Mail.")}, status=status.HTTP_403_FORBIDDEN)
+        if (user is not None and not user.is_active and isinstance(password, str) and user.check_password(password)):
+            return Response({"detail": ("Bitte überprüfe deine Eingaben und versuche es erneut.")}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -73,36 +68,33 @@ class CookieTokenObtainPairView(TokenObtainPairView):
 
 class CookieRefreshTokenView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
-            refresh_token = request.COOKIES.get('refresh_token')
+        refresh_token = request.COOKIES.get('refresh_token')
 
-            if refresh_token is None:
-                return Response(
-                    {"detail": "Refresh token not found!"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+        if refresh_token is None:
+            return Response(
+                {"detail": "Refresh token not found!"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-            serializer = self.get_serializer(data={"refresh": refresh_token})
+        serializer = self.get_serializer(data={"refresh": refresh_token})
 
-            try:
-                serializer.is_valid(raise_exception=True)
-            except:
-                return Response(
-                      {"detail": "Refresh token invalid!"},
-                      status=status.HTTP_401_UNAUTHORIZED
-                )
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            return Response({"detail": "Refresh token invalid!"}, status=status.HTTP_401_UNAUTHORIZED)
 
-            access_token = serializer.validated_data.get("access")
+        access_token = serializer.validated_data.get("access")
 
-            response = Response({"message": "access Token refreshed"})
-            response.set_cookie(
-                        key="access_token",
-                        value=access_token,
-                        httponly=True,
-                        secure=True,
-                        samesite="Lax"
-                    )
+        response = Response({"message": "access Token refreshed"})
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="Lax"
+            )
 
-            return response
+        return response
 
 class LogoutView(APIView):
     http_method_names = ["post"]
@@ -131,13 +123,13 @@ class AccountActivationView(APIView):
         except signing.SignatureExpired:
             return Response({"message": "This activation link has expired."}, status=status.HTTP_400_BAD_REQUEST)
         except signing.BadSignature:
-         return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+         return Response({"message": "This activation link is invalid. signatur"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user_id = urlsafe_base64_decode(uidb64).decode()
             user = User.objects.get(pk=user_id)
         except (ValueError, TypeError, OverflowError, User.DoesNotExist):
-            return Response({"message": "This activation link is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "This activation link is invalid. uid"}, status=status.HTTP_400_BAD_REQUEST)
         
         if data != str(user.pk):
             return Response(
@@ -146,7 +138,7 @@ class AccountActivationView(APIView):
             )
 
         if user.is_active:
-            return Response({"message": "Your account is already active"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Your account is already active"}, status=status.HTTP_200_OK)
 
         user.is_active = True
         user.save(update_fields=["is_active"])

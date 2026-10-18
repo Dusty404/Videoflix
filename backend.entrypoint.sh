@@ -15,8 +15,8 @@ echo "PostgreSQL ist bereit - fahre fort..."
 
 mkdir -p /app/media/thumbnails
 
-if [ ! -f /app/media/thumbnails/default.jpg ]; then
-    cp /app/assets/default.png /app/media/thumbnails/default.png
+if [ ! -f /app/media/thumbnails/default.png ]; then
+    cp /app/assets/default.png/app/media/thumbnails/default.png
 fi
 
 # Deine originalen Befehle (ohne wait_for_db)
