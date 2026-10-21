@@ -55,8 +55,9 @@ INSTALLED_APPS = [
     'django_rq',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'video.apps.VideoConfig',
     'django_cleanup.apps.CleanupConfig',
+    'auth_app',
+    'video_app',
 ]
 
 MIDDLEWARE = [

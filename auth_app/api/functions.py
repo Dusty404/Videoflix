@@ -3,7 +3,13 @@ from django.utils.http import urlsafe_base64_encode
 from django.core import signing
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.conf import settings
+from django.core.mail import EmailMessage
 from urllib.parse import urlencode
+from pathlib import Path
+from email.message import MIMEPart
+
 
 registration_signer = signing.TimestampSigner(salt="email-activation")
 password_reset_signer = signing.TimestampSigner(salt="password_reset")
@@ -20,23 +26,22 @@ def send_confirmation_email(user):
     query_params = urlencode({"uid": uidb64, "token": token})
     activation_url = (f"http://127.0.0.1:5500/pages/auth/activate.html?{query_params}")
     username = user.email.split("@")[0]
+    html_message = render_to_string("emails/confirm_email.html", {"username": username, "activation_url": activation_url, "logo_url": "cid:videoflix-logo"})
+    email = EmailMessage(subject="Confirm your email", body=html_message, from_email="info@Videoflix.com", to=[user.email])
+    email.content_subtype = "html"
+    logo_path = Path(settings.BASE_DIR) / "assets" / "Logo.png"
 
-    send_mail(
-        subject=f"Dear {username}",
-        message=(
-            f"Dear {username},\n\n"
-            "Thank you for registering with Videoflix. "
-            "To complete your registration and verify your email address, "
-            "please click the link below:\n\n"
-            f"{activation_url}\n\n"
-            "If you did not create an account with us, "
-            "please disregard this email.\n\n"
-            "Best regards,\n"
-            "Your Videoflix Team"
-        ),
-        from_email="info@Videoflix.com",
-        recipient_list=[user.email],
-    )
+    logo = MIMEPart()
+    logo.set_content(
+    logo_path.read_bytes(),
+    maintype="image",
+    subtype="png",
+    disposition="inline",
+    cid="<videoflix-logo>",
+)
+
+    email.attach(logo)
+    email.send()
 
 def check_activation_token(token):
     """
@@ -66,18 +71,19 @@ def send_password_reset_email(user):
     uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
     query_params = urlencode({"uid": uidb64, "token": token})
     reset_url = f"http://127.0.0.1:5500/pages/auth/confirm_password.html?{query_params}"
-
-    send_mail(
-        subject=f"Reset your Password",
-        message=(
-            f"Hello,\n\n"
-            "We recently received a request top reset your password if you made this request, please klick on the following link to reset your password:\n\n"
-            f"{reset_url}\n\n"
-            "If you did not request a password reset, "
-            "please ignore this email.\n\n"
-            "Best regards,\n"
-            "Your Videoflix Team"
-        ),
-        from_email="info@Videoflix.com",
-        recipient_list=[user.email],
+    html_message = render_to_string("emails/password_reset.html", {"reset_url": reset_url, "expiry_hours": 24, "logo_url": "cid:videoflix-logo"})
+    email = EmailMessage(subject="Reset your Password", body=html_message, from_email="info@Videoflix.com", to=[user.email])
+    email.content_subtype = "html"
+    logo_path = Path(settings.BASE_DIR) / "assets" / "Logo.png"
+    
+    logo = MIMEPart()
+    logo.set_content(
+        logo_path.read_bytes(),
+        maintype="image",
+        subtype="png",
+        disposition="inline",
+        cid="<videoflix-logo>",
     )
+    
+    email.attach(logo)
+    email.send()

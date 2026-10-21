@@ -81,27 +81,6 @@ Clone the repository or download it as a ZIP file. Replace the placeholder with 
 git clone https://github.com/Dusty404/Videoflix.git
 ```
 
-Open a terminal in the downloaded project directory.
-
-Create an project `env`
-
-```powershell
-# PowerShell
-python -m venv env
-```
-
-```bash
-# Linux / macOS
-python3 -m venv env
-```
-
-Activate `env`
-
-```powershell
-# PowerShell
-env/Scripts/activate
-```
-
 ### 2. Configure Environment Variables
 
 Copy `.env.template` to `.env`:
@@ -154,14 +133,6 @@ docker compose logs -f web
 
 The startup script waits for PostgreSQL, collects static files, generates and applies migrations, and creates an administrator if needed. It then starts an RQ worker and Gunicorn in the same container. Changing administrator credentials in `.env` does not update an existing account.
 
-| Address | Purpose |
-| --- | --- |
-| `http://localhost:8000/admin/` | Django administration |
-| `http://localhost:8000/api/` | Base URL for individual API endpoints; no standalone index page |
-| `http://localhost:8000/django-rq/` | Queue administration for authorized administrators |
-
-### 4. Add Your First Video
-
 Migrate Video to add Videos in adminpannel
 
 ```powershell
@@ -169,6 +140,14 @@ Migrate Video to add Videos in adminpannel
 docker compose exec web python manage.py makemigrations video
 docker compose exec web python manage.py migrate
 ```
+
+| Address | Purpose |
+| --- | --- |
+| `http://localhost:8000/admin/` | Django administration |
+| `http://localhost:8000/api/` | Base URL for individual API endpoints; no standalone index page |
+| `http://localhost:8000/django-rq/` | Queue administration for authorized administrators |
+
+### 4. Add Your First Video
 
 1. Sign in to Django admin using the configured administrator account.
 2. Create a new entry under **Videos**.
@@ -266,4 +245,4 @@ docker compose exec web python manage.py test auth_app video
 docker compose down
 ```
 
-Deleting a video record removes its directory under `media/videos/`, including generated HLS files.
+Deleting a video record removes its directory under `media/videos/`, including generated HLS files and thumbnails.

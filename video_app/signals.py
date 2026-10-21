@@ -1,6 +1,6 @@
 import os
 import shutil
-from .models import Video
+from video_app.models import Video
 from pathlib import Path
 from .tasks import convert_480p, convert_720p, convert_1080p
 from django.conf import settings
