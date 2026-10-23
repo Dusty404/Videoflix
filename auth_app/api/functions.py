@@ -27,7 +27,7 @@ def send_confirmation_email(user):
     activation_url = (f"http://127.0.0.1:5500/pages/auth/activate.html?{query_params}")
     username = user.email.split("@")[0]
     html_message = render_to_string("emails/confirm_email.html", {"username": username, "activation_url": activation_url, "logo_url": "cid:videoflix-logo"})
-    email = EmailMessage(subject="Confirm your email", body=html_message, from_email="info@Videoflix.com", to=[user.email])
+    email = EmailMessage(subject="Confirm your email", body=html_message, to=[user.email])
     email.content_subtype = "html"
     logo_path = Path(settings.BASE_DIR) / "assets" / "Logo.png"
 
@@ -72,7 +72,7 @@ def send_password_reset_email(user):
     query_params = urlencode({"uid": uidb64, "token": token})
     reset_url = f"http://127.0.0.1:5500/pages/auth/confirm_password.html?{query_params}"
     html_message = render_to_string("emails/password_reset.html", {"reset_url": reset_url, "expiry_hours": 24, "logo_url": "cid:videoflix-logo"})
-    email = EmailMessage(subject="Reset your Password", body=html_message, from_email="info@Videoflix.com", to=[user.email])
+    email = EmailMessage(subject="Reset your Password", body=html_message, to=[user.email])
     email.content_subtype = "html"
     logo_path = Path(settings.BASE_DIR) / "assets" / "Logo.png"
     
