@@ -22,7 +22,9 @@ fi
 # Deine originalen Befehle (ohne wait_for_db)
 python manage.py collectstatic --noinput
 python manage.py makemigrations
-python manage.py migrate
+python manage.py makemigrations video_app
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
 
 # Create a superuser using environment variables
 # (Dein Superuser-Erstellungs-Code bleibt gleich)

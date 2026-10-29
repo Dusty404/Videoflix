@@ -2,7 +2,7 @@ import os
 import shutil
 from video_app.models import Video
 from pathlib import Path
-from .tasks import convert_480p, convert_720p, convert_1080p
+from .tasks import convert_480p, convert_720p, convert_1080p, generate_thumbnail
 from django.conf import settings
 from django.dispatch import receiver
 from django.db.models.signals import post_save, post_delete
@@ -10,8 +10,11 @@ import django_rq
 
 @receiver(post_save, sender=Video)
 def video_post_save(sender, instance, created, **kwargs):
+    video_id = instance.pk
+    video_path = instance.video_file.path
+
     """
-    Enqueue three HLS conversion jobs for a newly created video with a file.
+    Enqueue three HLS conversion and a thumbnail creation job for a newly created video with a file.
 
     Args:
         sender (type[Video]): Model class emitting the post_save signal.
@@ -21,9 +24,11 @@ def video_post_save(sender, instance, created, **kwargs):
     """
     if created and instance.video_file:
         queue = django_rq.get_queue("default", autocommit=True)
-        queue.enqueue(convert_480p, instance.video_file.path)
-        queue.enqueue(convert_720p, instance.video_file.path)
-        queue.enqueue(convert_1080p, instance.video_file.path)
+        queue.enqueue(generate_thumbnail, video_id)
+        queue.enqueue(convert_480p, video_path)
+        queue.enqueue(convert_720p, video_path)
+        queue.enqueue(convert_1080p, video_path)
+        
 
 @receiver(post_delete, sender=Video)
 def delete_files_on_delete(sender, instance, **kwargs):

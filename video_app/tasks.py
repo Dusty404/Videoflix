@@ -1,5 +1,8 @@
 import subprocess
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from django.core.files import File
+from .models import Video
 
 
 def convert_hls(source, resolution):
@@ -96,3 +99,54 @@ def convert_1080p(source):
         OSError: If filesystem access or process creation fails.
     """
     return convert_hls(source, "1080")
+
+def generate_thumbnail(video_id):
+    """
+    Generate and save a thumbnail from a video's frame at three seconds.
+
+    Use FFmpeg to extract a single frame and resize it to a width of
+    640 pixels while preserving its aspect ratio. Store the image in
+    the video's thumbnail field and clean up temporary files afterward.
+
+    Args:
+        video_id (int): Primary key of the video to process.
+
+    Raises:
+        Video.DoesNotExist: If no video matches the given primary key.
+        subprocess.CalledProcessError: If FFmpeg exits with an error.
+        subprocess.TimeoutExpired: If FFmpeg takes longer than 120 seconds.
+        RuntimeError: If FFmpeg produces no thumbnail file.
+        OSError: If FFmpeg cannot be started or a file operation fails.
+    """
+    video = Video.objects.get(pk=video_id)
+
+    with TemporaryDirectory() as directory:
+        output_path = Path(directory)/"thumbnail.jpg"
+
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-nostdin",
+                "-y",
+                "-ss", "3",
+                "-i", video.video_file.path,
+                "-frames:v", "1",
+                "-vf", "scale=640:-1",
+                str(output_path),
+            ],
+            check=True,
+            capture_output=True,
+            timeout=120,
+        )
+
+        if not output_path.exists():
+            raise RuntimeError("Aus dem Video konnte kein Thumbnail erstellt werden.")
+
+        with output_path.open("rb") as image:
+            video.thumbnail.save(
+                f"video_{video.pk}.jpg",
+                File(image),
+                save=False,
+            )
+
+        video.save(update_fields=["thumbnail"])

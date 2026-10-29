@@ -24,6 +24,6 @@ class Video(models.Model):
         created_at = models.DateTimeField(auto_now_add=True)
         title = models.CharField(max_length=100)
         description = models.TextField(max_length=1000)
-        thumbnail = models.ImageField(upload_to="thumbnails/", default="thumbnails/default.png", blank=True)
+        thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, editable=False)
         category = models.CharField(max_length=255)
         video_file = models.FileField( upload_to=video_upload_path)

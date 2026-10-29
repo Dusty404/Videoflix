@@ -133,14 +133,6 @@ docker compose logs -f web
 
 The startup script waits for PostgreSQL, collects static files, generates and applies migrations, and creates an administrator if needed. It then starts an RQ worker and Gunicorn in the same container. Changing administrator credentials in `.env` does not update an existing account.
 
-Migrate Video_app to add Videos in adminpannel
-
-```powershell
-# Powershell / Linux /macOS
-docker compose exec web python manage.py makemigrations video_app
-docker compose exec web python manage.py migrate
-```
-
 | Address | Purpose |
 | --- | --- |
 | `http://localhost:8000/admin/` | Django administration |
