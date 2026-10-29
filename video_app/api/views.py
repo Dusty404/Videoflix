@@ -13,7 +13,6 @@ class VideoListView(ListAPIView):
 
     queryset = Video.objects.all().order_by("id")
     serializer_class = VideoSerializer
-    pagination_class = None
 
 class SingleVideoView(APIView):
     permission_classes = [HasJWTPermission]

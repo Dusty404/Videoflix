@@ -1,6 +1,7 @@
 from pathlib import Path
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import FileExtensionValidator
 
 def video_upload_path(instance, filename):
     """
@@ -26,4 +27,4 @@ class Video(models.Model):
         description = models.TextField(max_length=1000)
         thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, editable=False)
         category = models.CharField(max_length=255)
-        video_file = models.FileField( upload_to=video_upload_path)
+        video_file = models.FileField( upload_to=video_upload_path, validators=[FileExtensionValidator(allowed_extensions=["mp4", "webm", "mov", "avi"])])
