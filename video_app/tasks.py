@@ -121,7 +121,7 @@ def generate_thumbnail(video_id):
     video = Video.objects.get(pk=video_id)
 
     with TemporaryDirectory() as directory:
-        output_path = Path(directory)/"thumbnail.jpg"
+        output_path = Path(directory) / "thumbnail.jpg"
 
         subprocess.run(
             [
