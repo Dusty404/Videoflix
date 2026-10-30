@@ -1,7 +1,7 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class RegistrationSerializer(serializers.ModelSerializer):
     confirmed_password = serializers.CharField(write_only=True)

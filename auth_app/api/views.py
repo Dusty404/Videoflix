@@ -1,15 +1,16 @@
-from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_decode
+from django.core import signing
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshView)
-from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer, CheckAccountForPasswordResetSerializer, PasswordResetSerializer
-from .functions import send_confirmation_email, check_activation_token, send_password_reset_email
-from django.utils.http import urlsafe_base64_decode
-from django.core import signing
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+
+from .serializers import CustomTokenObtainPairSerializer, RegistrationSerializer, CheckAccountForPasswordResetSerializer, PasswordResetSerializer
+from .functions import send_confirmation_email, check_activation_token, send_password_reset_email
 
 User = get_user_model()
 

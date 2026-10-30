@@ -2,6 +2,7 @@ import subprocess
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from django.core.files import File
+
 from .models import Video
 
 
@@ -140,7 +141,7 @@ def generate_thumbnail(video_id):
         )
 
         if not output_path.exists():
-            raise RuntimeError("Aus dem Video konnte kein Thumbnail erstellt werden.")
+            raise RuntimeError("Thumbnail creation failed.")
 
         with output_path.open("rb") as image:
             video.thumbnail.save(

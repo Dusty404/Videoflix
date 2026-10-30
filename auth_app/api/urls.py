@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views import CookieTokenObtainPairView, CookieRefreshTokenView, RegisterView, AccountActivationView, LogoutView, PasswordResetView, SafeResetPasswordView
 
 urlpatterns = [

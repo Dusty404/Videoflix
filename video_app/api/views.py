@@ -3,9 +3,10 @@ from rest_framework.views import APIView
 from .permissions import HasJWTPermission
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
+from pathlib import Path
+
 from .serializers import VideoSerializer
 from video_app.models import Video
-from pathlib import Path
 
 
 class VideoListView(ListAPIView):
