@@ -49,7 +49,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         Raises:
             ValidationError: If the email address already exists.
         """
-        if User.objects.filter(email=value).exists():
+        if User.objects.filter(email__iexact=value, is_active=True).exists():
             raise serializers.ValidationError('Email already exists')
         return value
 

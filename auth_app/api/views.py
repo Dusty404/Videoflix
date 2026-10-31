@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.core import signing
+from django.db import transaction
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -34,10 +35,26 @@ class RegisterView(APIView):
         """
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        send_confirmation_email(user)
+        email = serializer.validated_data["email"]
 
-        return Response({"message": "Benutzer erstellt"}, status=status.HTTP_201_CREATED)
+        with transaction.atomic():
+            user = User.objects.select_for_update().filter(email__iexact=email).first()
+
+            if user is not None:
+                if user.is_active:
+                    return Response({"email": ["Email already exists"]}, status=status.HTTP_400_BAD_REQUEST)
+
+                if not user.check_password(serializer.validated_data["password"]):
+                    return Response({"detail": ("Bitte verwende dein ursprüngliches Passwort oder nutze „Passwort vergessen“.")}, status=status.HTTP_400_BAD_REQUEST)
+
+                response_status = status.HTTP_200_OK
+            else:
+                user = serializer.save()
+                response_status = status.HTTP_201_CREATED
+
+            send_confirmation_email(user)
+
+        return Response({"message": "Bitte überprüfe dein E-Mail-Postfach."}, status=response_status)
 
         
 
